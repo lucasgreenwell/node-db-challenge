@@ -35,6 +35,57 @@ server.get('/projects', (req, res) => {
         })
 })
 
+server.get('/projects/:id', (req, res) => {
+   methods.getThisProject(req.params.id)
+    .then(proj => {
+        if (proj){
+            methods.getAssociatedTasks(req.params.id)
+                .then(tasks => {
+                    methods.getAssociatedResources(req.params.id)
+                        .then(resources => {
+                            res.status(200).json({...proj, tasks: tasks, resources: resources})
+                        })
+                })
+        }else {
+            res.status(404).json({err: "couldn't find that one"})
+        }
+    })
+    .catch(err => {
+            console.log(err)
+            res.status(500).json({err: "something bad happened. Don't tell mom"})
+        })
+})
+
+server.delete('/projects/:id', (req,res)=> {
+    methods.deleteProject(req.params.id)
+        .then(num => {
+            if(num > 0){
+                res.status(204).end()
+            }
+            else(
+                res.status(404).json({err: 'coulnt find it'})
+            )
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({err: "something bad happened. Don't tell mom"})
+        })
+})
+
+server.put('/projects/:id', (req, res) => {
+    if (!req.body.projectName){
+        res.status(400).json({err: 'you need a name my friend'})
+    } else {
+        methods.editProject(req.params.id, req.body)
+            .then(proj => {
+                res.status(200).json(proj)
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(500).json({err: "something bad happened. Don't tell mom"})
+            })
+    }
+})
 //Resources
 server.post('/resources', (req, res) => {
     if (!req.body.resourceName){
@@ -53,8 +104,8 @@ server.post('/resources', (req, res) => {
 
 server.get('/resources', (req, res) => {
     methods.getAllResources()
-        .then(resource => {
-            res.status(200).json(resource)
+        .then(resources => {
+            res.status(200).json(resources)
         })
         .catch(err => {
             console.log(err)
@@ -72,6 +123,48 @@ server.post('/tasks', (req, res) => {
         methods.addTask(req.body)
             .then(id => {
                 res.status(201).json(id)
+            })
+            .catch(err => {
+                console.log(err)
+                res.status(500).json({err: "something bad happened. Don't tell mom"})
+            })
+    }
+})
+
+server.get('/tasks', (req, res) => {
+    methods.getAllTasks()
+        .then(tasks => {
+            res.status(200).json(tasks)
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({err: "something bad happened. Don't tell mom"})
+        })
+})
+
+server.delete('/tasks/:id', (req,res)=> {
+    methods.deleteTask(req.params.id)
+        .then(num => {
+            if(num > 0){
+                res.status(204).end()
+            }
+            else(
+                res.status(404).json({err: 'coulnt find it'})
+            )
+        })
+        .catch(err => {
+            console.log(err)
+            res.status(500).json({err: "something bad happened. Don't tell mom"})
+        })
+})
+
+server.put('/tasks/:id', (req, res) => {
+    if (!req.body.projectName){
+        res.status(400).json({err: 'you need a name my friend'})
+    } else {
+        methods.editTask(req.params.id, req.body)
+            .then(task => {
+                res.status(200).json(task)
             })
             .catch(err => {
                 console.log(err)
